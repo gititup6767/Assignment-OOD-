@@ -12,11 +12,8 @@ public class TicketReservation {
     private double finalPrice;
     private Event event;
 
-    // Composition: One reservation owns 1 to many DigitalTickets and 1 Payment
     private List<DigitalTicket> digitalTickets;
     private Payment payment;
-
-    // Aggregation: The reservation belongs to an Attendee
     private Attendee attendee;
 
     public TicketReservation(Attendee attendee, Event event, String[] uniqueSeatAssignments) {
@@ -28,12 +25,13 @@ public class TicketReservation {
         this.digitalTickets = new ArrayList<>();
     }
 
-    public Event getEvent(){
-        return event;
-    }
+    public Event getEvent(){ return event; }
 
-    public double calculateFinalPrice(double basePrice, double earlyBirdDiscount) {
-        double totalBase = basePrice * uniqueSeatAssignments.length;
+    // Updated to accept the specific price (Base or VIP) chosen by the user
+    public double calculateFinalPrice(double pricePerTicket, double earlyBirdDiscount, int freeTicketsRedeemed) {
+        int payableSeats = Math.max(0, uniqueSeatAssignments.length - freeTicketsRedeemed);
+        double totalBase = pricePerTicket * payableSeats;
+        
         this.finalPrice = totalBase - (totalBase * earlyBirdDiscount);
         return this.finalPrice;
     }
@@ -41,8 +39,9 @@ public class TicketReservation {
     public boolean confirmPayment(String paymentDetails, double amountPaid) {
         this.payment = new Payment(this.reservationID, amountPaid, paymentDetails);
         
-        if (this.payment.processTransaction()) {
+        if (this.payment.processTransaction() || amountPaid == 0.0) {
             generateTickets(); 
+            this.event.updateAvailableSeatCount(this.event.getAvailableSeats() - uniqueSeatAssignments.length);
             return true;
         }
         return false;
@@ -54,7 +53,6 @@ public class TicketReservation {
         }
     }
 
-    // Getters for external access
     public String getReservationID() { return reservationID; }
     public String[] getUniqueSeatAssignments() { return uniqueSeatAssignments; }
     public LocalDateTime getBookingTimestamp() { return bookingTimestamp; }

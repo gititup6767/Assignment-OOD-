@@ -2,10 +2,9 @@ package ood_assignment;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class AttendeeService {
-    // In-memory database mapping the Account User Key to the Attendee object
+    // Database now maps the Username to the Attendee object
     private Map<String, Attendee> attendeeDatabase;
 
     public AttendeeService() {
@@ -13,28 +12,28 @@ public class AttendeeService {
     }
 
     // Handles user registration
-    public Attendee registerAttendee(String fullName, String email, String phoneNumber) {
-        // Generate a unique user key (e.g., U-A1B2C3)
-        String newAccountUserKey = "U-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+    public Attendee registerAttendee(String username, String password, String fullName, String email, String phoneNumber) {
+        if (attendeeDatabase.containsKey(username)) {
+            System.out.println("❌ Registration failed. Username '" + username + "' is already taken.");
+            return null;
+        }
         
-        Attendee newAttendee = new Attendee(newAccountUserKey, fullName, email, phoneNumber);
+        Attendee newAttendee = new Attendee(username, password, fullName, email, phoneNumber);
+        attendeeDatabase.put(username, newAttendee);
         
-        // Save to our in-memory database
-        attendeeDatabase.put(newAccountUserKey, newAttendee);
-        
-        System.out.println("✅ Registration successful!");
-        System.out.println("IMPORTANT: Your Account User Key is: " + newAccountUserKey);
-        
+        System.out.println("✅ Registration successful! You can now log in with your username.");
         return newAttendee;
     }
 
     // Handles user sign-in
-    public Attendee loginAttendee(String accountUserKey) {
-        if (attendeeDatabase.containsKey(accountUserKey)) {
-            System.out.println("✅ Login successful! Welcome back.");
-            return attendeeDatabase.get(accountUserKey);
+    public Attendee loginAttendee(String username, String password) {
+        Attendee attendee = attendeeDatabase.get(username);
+        
+        if (attendee != null && attendee.getPassword().equals(password)) {
+            System.out.println("✅ Login successful! Welcome back, " + attendee.getFullName() + ".");
+            return attendee;
         } else {
-            System.out.println("❌ Login failed. Account User Key not found.");
+            System.out.println("❌ Login failed. Incorrect username or password.");
             return null;
         }
     }

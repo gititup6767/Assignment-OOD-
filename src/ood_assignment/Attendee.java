@@ -2,41 +2,53 @@ package ood_assignment;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class Attendee {
     private String accountUserKey;
+    private String username; 
+    private String password; 
     private String fullName;
     private String email;
-    private String phoneNumber; // Added based on your text requirement
+    private String phoneNumber; 
     private int loyaltyPointStatus;
     
-    // Aggregation: Attendee holds a history of their reservations
     private List<TicketReservation> bookingHistory;
 
-    public Attendee(String accountUserKey, String fullName, String email, String phoneNumber) {
-        this.accountUserKey = accountUserKey;
+    public Attendee(String username, String password, String fullName, String email, String phoneNumber) {
+        this.accountUserKey = "U-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+        this.username = username;
+        this.password = password;
         this.fullName = fullName;
         this.email = email;
-        this.phoneNumber = phoneNumber;
+        // Silently removes any spaces the user typed
+        this.phoneNumber = phoneNumber.replace(" ", ""); 
         this.loyaltyPointStatus = 0; 
         this.bookingHistory = new ArrayList<>();
     }
 
-    // Matches UML: inspectUpcomingSchedule(): void
     public void inspectUpcomingSchedule() {
         System.out.println(this.fullName + " is inspecting the upcoming event schedule...");
-        // The actual display logic will be handled by the UI connecting to your partner's Event system.
     }
 
-    // Matches UML: makeTicketReservation(): void
-    // Note: Modified slightly to accept the generated reservation to link it to the user and yes it is a suggestion from AI 
     public void makeTicketReservation(TicketReservation reservation) {
         this.bookingHistory.add(reservation);
-        this.loyaltyPointStatus += 10; // Reward points for completing a booking
-        System.out.println("Reservation added to account. Current Loyalty Points: " + this.loyaltyPointStatus);
+        int pointsEarned = (int) reservation.getFinalPrice(); 
+        this.loyaltyPointStatus += pointsEarned; 
+        
+        System.out.println("Reservation added to account.");
+        if (pointsEarned > 0) {
+            System.out.println("🎉 You earned " + pointsEarned + " loyalty points! Current Balance: " + this.loyaltyPointStatus);
+        }
+    }
+    
+    public void deductLoyaltyPoints(int points) {
+        if (this.loyaltyPointStatus >= points) {
+            this.loyaltyPointStatus -= points;
+            System.out.println("Loyalty points deducted. Remaining balance: " + this.loyaltyPointStatus);
+        }
     }
 
-    // Matches UML: reviewBookingHistory(): void
     public void reviewBookingHistory() {
         System.out.println("=== Booking History for " + this.fullName + " ===");
         if (bookingHistory.isEmpty()) {
@@ -51,8 +63,21 @@ public class Attendee {
         System.out.println("=====================================");
     }
 
-    // Getters for external access
+    // --- NEW SETTERS FOR PROFILE UPDATES ---
+    public void setEmail(String email) {
+        this.email = email;
+        System.out.println("✅ Email updated successfully.");
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        // Silently removes spaces on update as well
+        this.phoneNumber = phoneNumber.replace(" ", "");
+        System.out.println("✅ Phone number updated successfully.");
+    }
+
     public String getAccountUserKey() { return accountUserKey; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
     public String getPhoneNumber() { return phoneNumber; }

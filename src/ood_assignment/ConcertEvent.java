@@ -4,8 +4,8 @@ public class ConcertEvent extends Event {
     private String vipConfig;
     private String artistName;
 
-    public ConcertEvent(String eventID, String title, String venueName, double baseTicketPrice, int maxCapacity, String vipConfig, String artistName){
-        super(eventID, title, venueName, baseTicketPrice, maxCapacity);
+    public ConcertEvent(String eventID, String title, String eventDate, String venueName, double baseTicketPrice, int maxCapacity, boolean allowsLoyaltyRedemption, int pointsRequiredForRedemption, boolean hasVipTickets, double vipTicketPrice, String vipConfig, String artistName){
+        super(eventID, title, eventDate, venueName, baseTicketPrice, maxCapacity, allowsLoyaltyRedemption, pointsRequiredForRedemption, hasVipTickets, vipTicketPrice);
         this.vipConfig = vipConfig;
         this.artistName = artistName;
     }
@@ -14,10 +14,9 @@ public class ConcertEvent extends Event {
     public void displayDesc(){
         System.out.println("<--- Concert Event --->");
         super.displayDesc();
-        System.out.println("Artist: " + artistName + " | VIP Config: " + vipConfig + "." );
+        System.out.println("Artist: " + artistName + " | VIP Config: " + vipConfig);
     }
 
-    public void configVIPSeats(int vipCapacity){
-        System.out.println("Configuring " +vipCapacity + " VIP seats for artist " + artistName + ".");
-    }
+    public String getArtistName() { return artistName; }
+    public void setArtistName(String artistName) { this.artistName = artistName; }
 }

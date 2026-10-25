@@ -1,53 +1,72 @@
 package ood_assignment;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class AdminService {
-    // In-memory database mapping the Admin ID to the Admin object
+    // Database now maps Username to the Admin object
     private Map<String, Admin> adminDatabase;
 
     public AdminService() {
         this.adminDatabase = new HashMap<>();
-        createDefaultAdmin(); // Automatically create the master admin on startup
+        createDefaultAdmin(); 
     }
 
-    // Generates the required default admin
+    // Default master admin credentials: Username = "admin", Password = "adminpassword"
     private void createDefaultAdmin() {
-        Admin defaultAdmin = new Admin("ADMIN-MASTER", "System Administrator", "SuperAdmin", "IT");
-        adminDatabase.put(defaultAdmin.getAdminID(), defaultAdmin);
+        Admin defaultAdmin = new Admin("ADMIN-MASTER", "admin", "adminpassword", "System Administrator", "SuperAdmin", "IT");
+        adminDatabase.put(defaultAdmin.getUsername(), defaultAdmin);
     }
 
-    // Handles admin sign-in
-    public Admin loginAdmin(String adminID) {
-        if (adminDatabase.containsKey(adminID)) {
-            System.out.println("✅ Admin login successful! Welcome, " + adminDatabase.get(adminID).getFullName());
-            return adminDatabase.get(adminID);
+    public Admin loginAdmin(String username, String password) {
+        Admin admin = adminDatabase.get(username);
+        if (admin != null && admin.getPassword().equals(password)) {
+            System.out.println("✅ Admin login successful! Welcome, " + admin.getFullName());
+            return admin;
         } else {
-            System.out.println("❌ Admin login failed. Invalid Admin ID.");
+            System.out.println("❌ Admin login failed. Incorrect username or password.");
             return null;
         }
     }
 
-    // Restricts registration: A valid 'currentAdmin' must be passed in to authorize the creation
-    public Admin registerNewAdmin(Admin currentAdmin, String fullName, String roleLevel, String department) {
-        // Security check
-        if (currentAdmin == null || !adminDatabase.containsKey(currentAdmin.getAdminID())) {
+    public Admin registerNewAdmin(Admin currentAdmin, String username, String password, String fullName, String roleLevel, String department) {
+        if (currentAdmin == null || !adminDatabase.containsKey(currentAdmin.getUsername())) {
             System.out.println("❌ Unauthorized. Only verified admins can register new admins.");
             return null;
         }
+        if (adminDatabase.containsKey(username)) {
+            System.out.println("❌ Registration failed. Username '" + username + "' is already taken.");
+            return null;
+        }
         
-        // Generate a new Admin ID
-        String newAdminID = "ADMIN-" + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-        Admin newAdmin = new Admin(newAdminID, fullName, roleLevel, department);
-        
-        // Save to database
-        adminDatabase.put(newAdminID, newAdmin);
+        Admin newAdmin = new Admin(username, password, fullName, roleLevel, department);
+        adminDatabase.put(username, newAdmin);
         
         System.out.println("✅ New admin registered successfully by " + currentAdmin.getFullName() + ".");
-        System.out.println("IMPORTANT: The new Admin ID is: " + newAdminID);
-        
         return newAdmin;
+    }
+
+    public Collection<Admin> getAllAdmins() {
+        return adminDatabase.values();
+    }
+
+    public void deleteAdmin(String targetUsername, String currentUsername) {
+        Admin target = adminDatabase.get(targetUsername);
+        if (target == null) {
+            System.out.println("❌ Admin not found.");
+            return;
+        }
+        if (target.getAdminID().equals("ADMIN-MASTER")) {
+            System.out.println("❌ Permission Denied: Cannot delete the Master SuperAdmin.");
+            return;
+        }
+        if (targetUsername.equals(currentUsername)) {
+            System.out.println("❌ Error: You cannot delete your own active account.");
+            return;
+        }
+        
+        adminDatabase.remove(targetUsername);
+        System.out.println("✅ Admin '" + targetUsername + "' successfully deleted from the system.");
     }
 }
