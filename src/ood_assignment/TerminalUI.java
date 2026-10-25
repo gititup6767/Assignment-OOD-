@@ -6,12 +6,14 @@ public class TerminalUI {
     private Scanner scanner;
     private AttendeeService attendeeService;
     private AdminService adminService;
+    private EventService eventService;
 
     // Injecting our database services into the UI
-    public TerminalUI(AttendeeService attendeeService, AdminService adminService) {
+    public TerminalUI(AttendeeService attendeeService, AdminService adminService, EventService eventService) {
         this.scanner = new Scanner(System.in);
         this.attendeeService = attendeeService;
         this.adminService = adminService;
+        this.eventService = eventService;
     }
 
     public void start() {
@@ -27,12 +29,19 @@ public class TerminalUI {
             
             switch (choice) {
                 case "1":
-                    handleAttendeeFlow();
+                    System.out.println("\n<=== UPCOMING EVENTS ===>");
+                    for (Event e : eventService.getAllEvents()){
+                        e.displayDesc();
+                        System.out.println("<======================>");
+                    }
                     break;
                 case "2":
-                    handleAdminFlow();
+                    handleAttendeeFlow();
                     break;
                 case "3":
+                    handleAdminFlow();
+                    break;
+                case "4":
                     System.out.println("Shutting down the system. Goodbye!");
                     running = false;
                     break;
@@ -46,7 +55,7 @@ public class TerminalUI {
     // ATTENDEE PORTAL LOGIC
     // ==========================================
     private void handleAttendeeFlow() {
-        System.out.println("\n--- ATTENDEE PORTAL ---");
+        System.out.println("\n<=== ATTENDEE PORTAL ===>");
         System.out.println("1. Login");
         System.out.println("2. Register");
         System.out.print("Select option: ");
@@ -110,23 +119,31 @@ public class TerminalUI {
 
     private void processMockReservation(Attendee user) {
         System.out.println("\n--- TICKET RESERVATION ---");
+        System.out.println("Enter Event ID to book (e.g., EVT-001): ");
+        String eID = scanner.nextLine().trim();
+        Event selectedEvent = eventService.getEvent(eID);
+
+        if (selectedEvent == null){
+            System.out.println("Event not Found.");
+            return;
+        }
         // Mocking the event selection process until your partner builds the Event class
         System.out.print("How many seats would you like to book? (e.g., 2): ");
         int seatCount;
         try {
             seatCount = Integer.parseInt(scanner.nextLine().trim());
         } catch (NumberFormatException e) {
-            System.out.println("❌ Invalid number.");
+            System.out.println("❌ Invalid number. Please enter digits only.");
             return;
         }
 
         String[] seats = new String[seatCount];
         for (int i = 0; i < seatCount; i++) {
-            seats[i] = "MOCK-SEAT-" + (i + 1);
+            seats[i] = "SEAT-" + (i + 1);
         }
         
-        TicketReservation reservation = new TicketReservation(user, seats);
-        double finalPrice = reservation.calculateFinalPrice(150.00, 0.10); // Base: 150 MYR, 10% discount
+        TicketReservation reservation = new TicketReservation(user, selectedEvent, seats);
+        double finalPrice = reservation.calculateFinalPrice(selectedEvent.baseTicketPrice, 0.10); // Base: 150 MYR, 10% discount
         
         System.out.println("Total Price: MYR " + String.format("%.2f", finalPrice));
         System.out.print("Proceed to payment? (Y/N): ");
@@ -178,19 +195,36 @@ public class TerminalUI {
             
             switch (choice) {
                 case "1":
-                    admin.addEvent(new Object()); // Placeholder
+                    System.out.print("Enter Event ID (e.g., EVT-002): ");
+                    String eId = scanner.nextLine().trim();
+                    System.out.print("Enter Title: ");
+                    String title = scanner.nextLine().trim();
+                    System.out.print("Enter Venue Name: ");
+                    String venue = scanner.nextLine().trim();
+                    System.out.print("Enter Base Ticket Price: ");
+                    double price = Double.parseDouble(scanner.nextLine().trim());
+                    System.out.print("Enter Max Capacity: ");
+                    int cap = Integer.parseInt(scanner.nextLine().trim());
+
+                    System.out.print("Enter Artist Name: ");
+                    String artist = scanner.nextLine().trim();
+                    System.out.print("Enter VIP Config: ");
+                    String vip = scanner.nextLine().trim();
+                
+                    ConcertEvent newConcert = new ConcertEvent(eId, title, venue, price, cap, vip, artist);
+                    admin.addEvent(newConcert, eventService);
                     break;
                 case "2":
                     System.out.print("Enter Event ID to update: ");
-                    admin.updateEvent(scanner.nextLine().trim());
+                    admin.updateEvent(scanner.nextLine().trim(), eventService);
                     break;
                 case "3":
                     System.out.print("Enter Event ID to manage: ");
-                    String eID = scanner.nextLine().trim();
+                    String targeteID = scanner.nextLine().trim();
                     System.out.print("Enter new capacity: ");
                     try {
-                        int cap = Integer.parseInt(scanner.nextLine().trim());
-                        admin.manageTicketAllocations(eID, cap);
+                        int newCap = Integer.parseInt(scanner.nextLine().trim());
+                        admin.manageTicketAllocations(targeteID, newCap, eventService);
                     } catch (NumberFormatException e) {
                         System.out.println("❌ Invalid capacity. Please enter numbers only.");
                     }

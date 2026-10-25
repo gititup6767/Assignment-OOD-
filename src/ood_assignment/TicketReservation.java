@@ -10,6 +10,7 @@ public class TicketReservation {
     private String[] uniqueSeatAssignments;
     private LocalDateTime bookingTimestamp;
     private double finalPrice;
+    private Event event;
 
     // Composition: One reservation owns 1 to many DigitalTickets and 1 Payment
     private List<DigitalTicket> digitalTickets;
@@ -18,12 +19,17 @@ public class TicketReservation {
     // Aggregation: The reservation belongs to an Attendee
     private Attendee attendee;
 
-    public TicketReservation(Attendee attendee, String[] uniqueSeatAssignments) {
+    public TicketReservation(Attendee attendee, Event event, String[] uniqueSeatAssignments) {
         this.reservationID = "RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         this.attendee = attendee;
+        this.event = event;
         this.uniqueSeatAssignments = uniqueSeatAssignments;
         this.bookingTimestamp = LocalDateTime.now();
         this.digitalTickets = new ArrayList<>();
+    }
+
+    public Event getEvent(){
+        return event;
     }
 
     public double calculateFinalPrice(double basePrice, double earlyBirdDiscount) {

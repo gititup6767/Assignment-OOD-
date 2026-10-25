@@ -15,20 +15,28 @@ public class Admin {
 
     // Matches UML: addEvent(newEvent: Event): void[cite: 5]
     // Note: Using 'Object' as a placeholder until your partner creates the 'Event' class.
-    public void addEvent(Object newEvent) {
+    public void addEvent(Event newEvent, EventService eventServices) {
         System.out.println("Admin " + this.adminID + " is preparing to add a new event...");
         //  replace 'Object' with 'Event' and add their saving logic here
     }
 
     // Matches UML: updateEvent(eventID: String): void[cite: 5]
-    public void updateEvent(String eventID) {
+    public void updateEvent(String eventID, EventService eventServices) {
         System.out.println("Admin " + this.adminID + " is accessing event: " + eventID + " for updates...");
+        Event event = eventServices.getEvent(eventID);
+        if (event != null){
+            event.displayDesc();
+        }
+        else {
+            System.out.println("Event ID not Found.");
+        }
         //  add their event lookup and modification logic here
     }
 
     // Matches UML: manageTicketAllocations(eventID: String, capacity: int): void[cite: 5]
-    public void manageTicketAllocations(String eventID, int capacity) {
+    public void manageTicketAllocations(String eventID, int capacity, EventService eventServices) {
         System.out.println("Admin " + this.adminID + " is updating ticket capacity for " + eventID + " to " + capacity + " seats.");
+        eventServices.updateEventCapacity(eventID, capacity);
         //  will add the logic to adjust maximum capacity here
     }
 
